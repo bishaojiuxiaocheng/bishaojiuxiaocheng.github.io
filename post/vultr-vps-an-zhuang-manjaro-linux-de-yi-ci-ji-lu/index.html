@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" >
 
-<title>关于 | Gridea</title>
+<title>Vultr VPS 安装Manjaro Linux 的一次记录 | Gridea</title>
 <meta name="description" content="温故而知新">
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -81,26 +81,124 @@
       <div class="sm-12 md-8 col">
         <div class="paper">
           <article class="article">
-            <h1>关于</h1>
+            <h1>Vultr VPS 安装Manjaro Linux 的一次记录</h1>
             <p class="article-meta">
-              2019-01-25
+              2020-02-11
               
             </p>
             
             <div class="post-content">
               <blockquote>
-<p>欢迎来到我的小站呀，很高兴遇见你！🤝</p>
+<p>时间：2020-02-07<br>
+在 Vultr 的 VPS 上安装Manjaro Linux i3 ，并安装配置shadowsocks和v2ray的一次记录<br>
+环境：Vultr 1核1G的VPS + Manjaro i3 18.1.5</p>
 </blockquote>
-<h2 id="关于本站">🏠 关于本站</h2>
-<h2 id="博主是谁">👨‍💻 博主是谁</h2>
-<h2 id="兴趣爱好">⛹ 兴趣爱好</h2>
-<h2 id="联系我呀">📬 联系我呀</h2>
-<pre><code>coding: utf-8
-print('hello world')
+<h1 id="第一步导入manjaro安装镜像">第一步：导入Manjaro安装镜像</h1>
+<p>Vultr有可以安装自定义系统的功能， 只需要把系统的安装镜像上传就可以了， 也可以用url让Vultr后台自己下载。 这次我采用url的方式。</p>
+<ol>
+<li>获取Manjaro的安装镜像url<br>
+由于Manjaro i3版本是社区版， 所以要到Manjaro社区获取相关的下载链接<br>
+<code>https://dotsrc.dl.osdn.net/osdn/storage/g/m/ma/manjaro-community/i3/18.1.5/manjaro-i3-18.1.5-191229-linux54.iso</code></li>
+<li>Upload 到 Vultr<br>
+在Vultr的用户中心有个Add ISO， 略</li>
+</ol>
+<h1 id="第二步安装vps实例">第二步：安装VPS实例</h1>
+<p>第三方系统只能自己手动安装， 所以在实例初始化后，直接在后台管理界面进入VPS安装</p>
+<ol>
+<li>
+<p>Manjaro 是GUI安装， 只需要注意一下语言环境和编码环境都选成英文， 时间选VPS对应的地区，方便后续安装v2ray</p>
+</li>
+<li>
+<p>安装完成后<br>
+先更新<code>pacman -Syyu</code>（都不需要考虑镜像源的问题😌）， 再关掉窗口管理器的开机自启<code>systemctl disable lightdm.service</code></p>
+</li>
+<li>
+<p>安装配置SSH<br>
+<code>pacman -S openssh</code><br>
+<code>systemctl start sshd.service</code><br>
+<code>systemctl enable sshd.service #开机自启</code></p>
+</li>
+<li>
+<p>开启防火墙， 开放相应端口<br>
+<code>ufw enable</code><br>
+<code>ufw default deny #默认禁止</code><br>
+<code>ufw allow 22</code></p>
+</li>
+</ol>
+<h1 id="第三步安装ss和v2ray">第三步：安装SS和V2ray</h1>
+<p>这些都没有什么难度， 当连接不上的时候，先ping一下，再检查一下配置信息的正确， 最后检查连接信息是否正确。<strong>注：有时候死活连接不上的时候，更换一个端口就好了， 莫名奇妙</strong></p>
+<ul>
+<li>
+<p>v2ray</p>
+<ol>
+<li>
+<p>安装<br>
+<code>pacman -S v2ray</code></p>
+</li>
+<li>
+<p>配置<br>
+创建一个目录用来保存v2ray的log ，<code>mkdir -p ~/.logs/v2ray</code><br>
+编写<code>/etc/v2ray/config.json</code>， 就简单的vmess加密就好了，本来还加了一个mkcp的，被运营商。。。</p>
+</li>
+</ol>
+<pre><code class="language-json">{
+&quot;log&quot;: {
+&quot;access&quot;: &quot;/home/.logs/v2ray/access.log&quot;,
+&quot;error&quot;: &quot;/home/.logs/v2ray/error.log&quot;,
+&quot;loglevel&quot;: &quot;warning&quot;
+},
+&quot;inbounds&quot;: [{
+&quot;listen&quot;:&quot;0.0.0.0&quot;,
+&quot;port&quot;: 端口号,
+&quot;protocol&quot;: &quot;vmess&quot;,
+&quot;settings&quot;: {
+ &quot;clients&quot;:[
+{
+   &quot;id&quot;: &quot;UUID&quot;,
+   &quot;alterId&quot;: 233
+}          
+ ]
+}
+}],
+&quot;outbounds&quot;:[{
+&quot;protocol&quot;:&quot;freedom&quot;,
+&quot;settings&quot;:{}
+}]}
 </code></pre>
-<blockquote>
-<p>你好啊</p>
-</blockquote>
+<ol start="3">
+<li>运行<br>
+<code>systemctl start v2ray.service</code>,<br>
+<code>systemctl enable v2ray.service</code><br>
+<code>ufw allow 端口号</code></li>
+</ol>
+</li>
+<li>
+<p>shadowsocks</p>
+<ol>
+<li>安装， <code>pacman -S shadowsocks-libev</code></li>
+<li>配置<br>
+<code>vim /etc/shadowsocks/demo.json</code><pre><code class="language-json">{
+&quot;server&quot;:[&quot;::0&quot;,&quot;0.0.0.0&quot;],    //同时监听ipv4和ipv6
+&quot;server_port&quot;:&quot;端口号&quot;,
+&quot;password&quot;:&quot;密码&quot;,
+&quot;timeout&quot;:300,
+&quot;method&quot;:&quot;chacha20-ietf-poly1305&quot;,
+&quot;fast_open&quot;:true,
+}
+</code></pre>
+</li>
+<li>运行<br>
+<code>systemctl start shadowsocks-libev-server@demo.service</code><br>
+<code>systemctl enable shadowsocks-libev-server@demo.service</code><br>
+<code>ufw allow 端口号</code></li>
+</ol>
+</li>
+</ul>
+<h1 id="后记">后记</h1>
+<ul>
+<li>v2ray在使用过程中出现过两次无法连接。 第一次关闭mkcp后恢复正常， 第二次更换端口后恢复正常</li>
+<li>且行且珍惜吧。</li>
+</ul>
 
             </div>
           </article>
@@ -111,9 +209,9 @@ print('hello world')
               <div class="next">
                 下一篇
               </div>
-              <a href="https://bishaojiuxiaocheng.github.io/post/hello-gridea">
+              <a href="https://bishaojiuxiaocheng.github.io/post/about">
                 <h3 class="post-title">
-                  Hello Gridea
+                  关于
                 </h3>
               </a>
             </div>
@@ -174,7 +272,7 @@ print('hello world')
     </div>
     <div class="row">
       
-        <a href="https://bishaojiuxiaocheng.github.io/tag/Z9w9-2xbb" class="badge secondary">
+        <a href="https://bishaojiuxiaocheng.github.io/tag/Z9w9-2xbb" class="badge warning">
           Gridea
         </a>
       
