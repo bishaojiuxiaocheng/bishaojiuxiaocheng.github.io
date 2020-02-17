@@ -1,15 +1,284 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://bishaojiuxiaocheng.github.io</id>
-    <title>Gridea</title>
-    <updated>2020-02-11T15:33:43.149Z</updated>
+    <title>小橙</title>
+    <updated>2020-02-17T13:23:47.232Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://bishaojiuxiaocheng.github.io"/>
     <link rel="self" href="https://bishaojiuxiaocheng.github.io/atom.xml"/>
-    <subtitle>一个无名小子的无聊日记</subtitle>
+    <subtitle>你渴望成为美少女战士吗？</subtitle>
     <logo>https://bishaojiuxiaocheng.github.io/images/avatar.png</logo>
     <icon>https://bishaojiuxiaocheng.github.io/favicon.ico</icon>
-    <rights>All rights reserved 2020, Gridea</rights>
+    <rights>All rights reserved 2020, 小橙</rights>
+    <entry>
+        <title type="html"><![CDATA[VPS 安装filebrowser做一个小型的私人网盘]]></title>
+        <id>https://bishaojiuxiaocheng.github.io/post/vps-an-zhuang-filebrowser-zuo-yi-ge-xiao-xing-de-si-ren-wang-pan</id>
+        <link href="https://bishaojiuxiaocheng.github.io/post/vps-an-zhuang-filebrowser-zuo-yi-ge-xiao-xing-de-si-ren-wang-pan">
+        </link>
+        <updated>2020-02-17T12:18:21.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>继上次的vps安装manjaro后又再搭建的一个服务，为了防止我的爆满的硬盘出现意外，把一些**放在云端。<br>
+题外话， vultr的日本节点，对移动和电信的线路都不太友好。。。</p>
+</blockquote>
+<p>起初， 打算直接在部署的， 但是由于个人能力问题，最终失败告终。。。<br>
+<u>无法远程访问，应该是caddy反向代理配置错了， 可是我当时怎么没想到frp呢？</u></p>
+<p>没办法，那就用docker吧。</p>
+<ul>
+<li><strong>先安装个docker</strong></li>
+</ul>
+<pre><code class="language-sh">sudo pacman -Sy docker
+# sudo systemctl enable --now docker // 这是新get到的启动服务并设置开机自启的方法
+sudo systemctl start docker # 启动docker
+sudo docker info # 查看启动是否成功
+sudo systemctl enable docker # 开机自启
+</code></pre>
+<ul>
+<li><strong>把filebrowser的镜像pull下来， 启动</strong></li>
+</ul>
+<pre><code class="language-sh">sudo docker pull filebrowser/filebrowser # 拉取filebrowser官方镜像
+sudo mkdir -p /src/filebrowser/site # 创建文件保存目录
+sudo docker run -d \ # 后台运行
+--restart=always \ # 总是自动重启
+--name  filebrowser  filebrowser/filebrowser \ 
+-v /srv/filebrowser/site/root:/srv \ #映射宿主机的 /srv/filebrowser/site/root 到容器的 /srv
+-v /data/filebrowser/filebrowserconfig.json:/etc/config.json \ # 把配置文件映射出来，方便后期修改
+-v /data/filebrowser/database.db:/etc/database.db \ # 把数据库文件映射出来，方便备份迁移
+-p 80:80 \ # 把容器的的80端口映射到宿主机的80端口
+</code></pre>
+<blockquote>
+<p><code>--name</code>：给运行的容器起个名， 不然就是一堆无规律的数字和字母<br>
+<code>-v</code>：表示把宿主机的某文件或目录挂载（或者叫映射？）到容器，‘ ：’前是宿主机， 后是容器<br>
+<code>-p</code>： 端口映射， 把容器的某端口映射到宿主机的某端口， ‘ ：’前是宿主机， 后是容器</p>
+</blockquote>
+<ul>
+<li><strong>防火墙开放端口</strong></li>
+<li><strong>登录filebrowser，默认的用户和密码都是admin，修改默认配置</strong></li>
+</ul>
+<blockquote>
+<blockquote>
+<p>最后说一句：docker真的太方便了。。。。</p>
+</blockquote>
+</blockquote>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Flask-SQLALchemy 的用法]]></title>
+        <id>https://bishaojiuxiaocheng.github.io/post/flask-sqlalchemy-de-yong-fa</id>
+        <link href="https://bishaojiuxiaocheng.github.io/post/flask-sqlalchemy-de-yong-fa">
+        </link>
+        <updated>2020-02-12T09:24:11.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>Python 3.7.4<br>
+flask 1.1.1</p>
+</blockquote>
+<h1 id="创建flask应用实例">创建flask应用实例</h1>
+<p>我比较喜欢用 工厂函数 的方法来初始化实例</p>
+<h2 id="创建配置类用来初始化配置">创建配置类，用来初始化配置</h2>
+<pre><code class="language-python">class Config(object):
+    DEBUG = True
+
+    SQLALCHEMY_DATABASE_URI = &quot;sqlite:///databasename&quot;    # 用于连接数据库的地址
+    SQLALCHEMY_TRACK_MODIFICATIONS = False   # 禁用 追踪对象的修改并且发送信号
+</code></pre>
+<p>用于连接数据库的URI有其特定的形式：</p>
+<pre><code>Postgres:     postgresql://scott:tiger@localhost/mydatabase
+MySQL:        mysql://scott:tiger@localhost/mydatabase
+Oracle:         oracle://scott:tiger@127.0.0.1:1521/sidname
+SQLite:         sqlite:////absolute/path/to/foo.db
+</code></pre>
+<p><strong>这里要注意以下SQLite的语法，<code>////</code>表示绝对路径， <code>///</code>表示相对路径</strong><br>
+还有更多的配置参考：<code>http://www.pythondoc.com/flask-sqlalchemy/config.html</code></p>
+<h2 id="创建工厂函数">创建工厂函数</h2>
+<pre><code class="language-python">from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+def create_app(config_name):
+    app = Flask(__name__)
+    app.config.from_object(config_name)
+
+    db.app = app
+    db.init_app(app)
+
+    return app
+</code></pre>
+<h2 id="建立数据库模型">建立数据库模型</h2>
+<p>建立数据库模型需要用到<code>db.Model</code></p>
+<pre><code class="language-python">import db #导入创建好的db
+
+class Demo(db.Model):
+    __tabelname__ = 'demo'  # 表名
+
+    id = db.Column(db.Integer, primary_key=True)   # db.Column定义一列， primary_key=True 表示主键
+    user = db.Column('user', db.String(32)) # 默认变量名为列名， 第一个参数可以指定不同的列名
+    def __init__(self, user):
+        self.user = user
+</code></pre>
+<p>Column常用的类型：</p>
+<ul>
+<li>Integer :             整数</li>
+<li>String(size):       长度限制size的字符串</li>
+<li>Text：                unicode文本</li>
+<li>DateTime：       表示为 Python datetime 对象的 时间和日期</li>
+<li>Float：	            存储浮点值</li>
+<li>Boolean：         存储布尔值</li>
+<li>PickleType：	  存储为一个持久化的 Python 对象</li>
+<li>LargeBinary：	  存储一个任意大的二进制数据</li>
+</ul>
+<h2 id="初始化">初始化</h2>
+<pre><code class="language-python">app = create_app(Config)
+</code></pre>
+<h1 id="对数据库的相关操作">对数据库的相关操作</h1>
+<p>初始化app后，在需要用的地方导入 <code>db</code> 就可以进行数据库相关操作了， <strong>如果要写入数据库需要提交<code>db.session.commit()</code></strong></p>
+<h2 id="增">增</h2>
+<p>添加数据有<code>session.add()</code>, <code>session.add_all(*list)</code></p>
+<h3 id="sessionadd-添加单条数据">session.add() 添加单条数据</h3>
+<ol>
+<li>实例化一个数据库模型类：<code>who = Demo('bishaojiuxiaocheng')</code></li>
+<li>把<code>who</code>添加到会话中：<code>db.session.add(who)</code></li>
+<li>提交</li>
+</ol>
+<h3 id="sessionadd_alllist-添加多条数据">session.add_all(*list) 添加多条数据</h3>
+<ol>
+<li>传入一组数据库模型类实例化的列表: <code>user_list = [_ for _ in ['a', 'b', 'c', 'd']]</code></li>
+<li><code>db.session.add(*user_list)</code></li>
+<li>提交</li>
+</ol>
+<h2 id="删">删</h2>
+<p>pass</p>
+<h2 id="查">查</h2>
+<p>查询用<code>query</code>属性， 用<code>filter()</code>或者<code>filter_by()</code>过滤， 用 <code>first()</code>和<code>all()</code>获取查询到的对象，可以用<code>limit(size)</code>来限制返回的个数；主键的查询可用<code>get()</code>方法<br>
+<strong>当查询不到对象时，返回<code>None</code></strong></p>
+<blockquote>
+<p>未完，待后续补充。。。</p>
+</blockquote>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Python OS模块相关用法]]></title>
+        <id>https://bishaojiuxiaocheng.github.io/post/python-os-mo-kuai-xiang-guan-yong-fa</id>
+        <link href="https://bishaojiuxiaocheng.github.io/post/python-os-mo-kuai-xiang-guan-yong-fa">
+        </link>
+        <updated>2020-02-12T08:57:11.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>记录所用到的os库的相关方法和用法， 持续更新<br>
+Python 3.7.4</p>
+</blockquote>
+<h1 id="os-模块">os 模块</h1>
+<h2 id="osgetcwd-返回当前工作目录">os.getcwd() 返回当前工作目录</h2>
+<blockquote>
+<p>该函数不需要传递参数，它返回当前工作的目录。返回字符串类型</p>
+</blockquote>
+<pre><code class="language-python">import os
+print(os.getcwd())
+</code></pre>
+<p>运行后输出：<br>
+<code>'D:\\Works\\Programs\\Python\\darksouls3'</code><br>
+可以配合 <code>os.path.join()</code>方法把当当前目录下的某个目录或者文件转换为绝对路径</p>
+<h1 id="ospath-模块">os.path 模块</h1>
+<h2 id="ospathjoinpath1-path2-or-path-把目录和文件名合成一个路径">os.path.join(path1, path2 or [*path]) 把目录和文件名合成一个路径</h2>
+<blockquote>
+<p>需要传入两个参数，第一个参数为字符串类型，第二个参数可以时字符串，也可以是列表，返回一个拼接好的字符串。<br>
+和str.join()差不多， 只不过os.path.join内部帮你处理了<code>\</code>，<code>/</code>等问题， <strong>但是他不会帮你帮你判断这个目录或者文件是否存在</strong></p>
+</blockquote>
+<pre><code class="language-python">import os
+print(os.getcwd(), 'test')
+</code></pre>
+<p>输出：<br>
+<code>'D:\\Works\\Programs\\Python\\darksouls3\\test'</code></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Flask-SQLAlchemy 中数据库连接初始化问题]]></title>
+        <id>https://bishaojiuxiaocheng.github.io/post/flask-sqlalchemy-zhong-shu-ju-ku-lian-jie-chu-shi-hua-wen-ti</id>
+        <link href="https://bishaojiuxiaocheng.github.io/post/flask-sqlalchemy-zhong-shu-ju-ku-lian-jie-chu-shi-hua-wen-ti">
+        </link>
+        <updated>2020-02-12T07:49:10.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>前言： flask-sqlalchemy是对sqlalchemy的进一步封装。初次接触感觉还是sqlalchemy好用一点</p>
+</blockquote>
+<blockquote>
+<p>问题具体描述：在一次Flask的后端开发中，从SQLAlchemy库转用flask-sqlalchemy的时候，出现的数据库连接初始化问题。用的是<strong>sqlite</strong>数据库， 起初用sqlalchemy连接没有任何问题， 在修改代码改用flask-sqlalchemy是出现无法连接至数据库。</p>
+</blockquote>
+<blockquote>
+<p>原因：初始化失败</p>
+</blockquote>
+<blockquote>
+<p>解决：在<code>db.init_app(app)</code>前加上<code>db.app = app</code>， 官方并没有提到这个。。。</p>
+</blockquote>
+<h2 id="我的项目目录结构">我的项目目录结构</h2>
+<ul>
+<li>/
+<ul>
+<li>DS3db
+<ul>
+<li>view
+<ul>
+<li><strong>init</strong>.py</li>
+<li>weapon_data.py</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>init</strong>.py</li>
+<li>model.py</li>
+<li>app.py</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>在<code>DS3db/__init__.py</code>中创建工厂函数</p>
+<pre><code class="language-python">from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+def create_app(config_name):
+    &quot;&quot;&quot;
+    创建flask应用对象
+    :param config_name: cls 配置类
+    :return: flask应用对象
+    &quot;&quot;&quot;
+
+    app = Flask(__name__)
+    app.config.from_object(config_name)
+
+    db.init_app(app)
+    print(db.engine)   ## 查看连接状态， 是后来进行查询数据库时显示没有相关的表加上去的
+
+    from .view import api
+    app.register_blueprint(api, url_prefix='/api')
+
+    return app
+</code></pre>
+<p>在<code>Config</code>类中编写app相关配置</p>
+<pre><code class="language-python">class Config(object):
+    DEBUG = True
+
+    SQLALCHEMY_DATABASE_URI = &quot;sqlite://&quot; + os.path.join(os.getcwd(), &quot;Weapon.db&quot;)    #数据库文件在项目的根目录下
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+</code></pre>
+<p>在调用 <code>create_app()</code>函数后 直接报错：</p>
+<pre><code class="language-Traceback">  File &quot;D:/Works/Programs/Python/darksouls3/main.py&quot;, line 13, in &lt;module&gt;
+    app = create_app(Config)
+  File &quot;D:\Works\Programs\Python\darksouls3\DS3db\__init__.py&quot;, line 19, in create_app
+    print(db.engine)
+  File &quot;D:\Works\Programs\Python\darksouls3\venv\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 937, in engine
+    return self.get_engine()
+  File &quot;D:\Works\Programs\Python\darksouls3\venv\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 946, in get_engine
+    app = self.get_app(app)
+  File &quot;D:\Works\Programs\Python\darksouls3\venv\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 982, in get_app
+    'No application found. Either work inside a view function or push'
+RuntimeError: No application found. Either work inside a view function or push an application context. See http://flask-sqlalchemy.pocoo.org/contexts/.
+</code></pre>
+<p>显然， 是<code>db.init_app(app)</code>这里出错了， 没有初始化成功，但是把<code>print(db.engine)</code>注释掉，他就不会报错， 导致后来进行数据操作时一系列错误（走了好多弯路。。。）</p>
+<h2 id="解决办法">解决办法</h2>
+<p>在 <code>create_app()</code>中的<code>db.init_app(app)</code>前加上<code>db.app = app</code>就能初始化成功。<br>
+这时<code>print(db.engine)</code>就不会报错， 并打印：<br>
+<code>Engine(sqlite:///D:\Works\Programs\Python\darksouls3\DS3db\Weapon.db)</code></p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Vultr VPS 安装Manjaro Linux 的一次记录]]></title>
         <id>https://bishaojiuxiaocheng.github.io/post/vultr-vps-an-zhuang-manjaro-linux-de-yi-ci-ji-lu</id>

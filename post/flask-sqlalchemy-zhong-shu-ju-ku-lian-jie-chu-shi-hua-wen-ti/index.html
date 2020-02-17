@@ -1,0 +1,274 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flask-SQLAlchemy 中数据库连接初始化问题 | 小橙</title>
+<link rel="shortcut icon" href="https://bishaojiuxiaocheng.github.io/favicon.ico?v=1581945785656">
+<link href="https://cdn.remixicon.com/releases/v2.1.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://bishaojiuxiaocheng.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Flask-SQLAlchemy 中数据库连接初始化问题 | 小橙 - Atom Feed" href="https://bishaojiuxiaocheng.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="
+前言： flask-sqlalchemy是对sqlalchemy的进一步封装。初次接触感觉还是sqlalchemy好用一点
+
+
+问题具体描述：在一次Flask的后端开发中，从SQLAlchemy库转用flask-sqlalchemy的时候..." />
+    <meta name="keywords" content="python,Flask,SQLALchemy,问题记录" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://bishaojiuxiaocheng.github.io">
+  <img class="avatar" src="https://bishaojiuxiaocheng.github.io/images/avatar.png?v=1581945785656" alt="">
+  </a>
+  <h1 class="site-title">
+    小橙
+  </h1>
+  <p class="site-description">
+    你渴望成为美少女战士吗？
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Flask-SQLAlchemy 中数据库连接初始化问题
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-02-12
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/FxTTaQDHd" class="post-tag">
+                  # python
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/bIjWrxsvXF" class="post-tag">
+                  # Flask
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/zLvENvHHSO" class="post-tag">
+                  # SQLALchemy
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/bXulWKpgDD" class="post-tag">
+                  # 问题记录
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <blockquote>
+<p>前言： flask-sqlalchemy是对sqlalchemy的进一步封装。初次接触感觉还是sqlalchemy好用一点</p>
+</blockquote>
+<blockquote>
+<p>问题具体描述：在一次Flask的后端开发中，从SQLAlchemy库转用flask-sqlalchemy的时候，出现的数据库连接初始化问题。用的是<strong>sqlite</strong>数据库， 起初用sqlalchemy连接没有任何问题， 在修改代码改用flask-sqlalchemy是出现无法连接至数据库。</p>
+</blockquote>
+<blockquote>
+<p>原因：初始化失败</p>
+</blockquote>
+<blockquote>
+<p>解决：在<code>db.init_app(app)</code>前加上<code>db.app = app</code>， 官方并没有提到这个。。。</p>
+</blockquote>
+<h2 id="我的项目目录结构">我的项目目录结构</h2>
+<ul>
+<li>/
+<ul>
+<li>DS3db
+<ul>
+<li>view
+<ul>
+<li><strong>init</strong>.py</li>
+<li>weapon_data.py</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>init</strong>.py</li>
+<li>model.py</li>
+<li>app.py</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p>在<code>DS3db/__init__.py</code>中创建工厂函数</p>
+<pre><code class="language-python">from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+def create_app(config_name):
+    &quot;&quot;&quot;
+    创建flask应用对象
+    :param config_name: cls 配置类
+    :return: flask应用对象
+    &quot;&quot;&quot;
+
+    app = Flask(__name__)
+    app.config.from_object(config_name)
+
+    db.init_app(app)
+    print(db.engine)   ## 查看连接状态， 是后来进行查询数据库时显示没有相关的表加上去的
+
+    from .view import api
+    app.register_blueprint(api, url_prefix='/api')
+
+    return app
+</code></pre>
+<p>在<code>Config</code>类中编写app相关配置</p>
+<pre><code class="language-python">class Config(object):
+    DEBUG = True
+
+    SQLALCHEMY_DATABASE_URI = &quot;sqlite://&quot; + os.path.join(os.getcwd(), &quot;Weapon.db&quot;)    #数据库文件在项目的根目录下
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+</code></pre>
+<p>在调用 <code>create_app()</code>函数后 直接报错：</p>
+<pre><code class="language-Traceback">  File &quot;D:/Works/Programs/Python/darksouls3/main.py&quot;, line 13, in &lt;module&gt;
+    app = create_app(Config)
+  File &quot;D:\Works\Programs\Python\darksouls3\DS3db\__init__.py&quot;, line 19, in create_app
+    print(db.engine)
+  File &quot;D:\Works\Programs\Python\darksouls3\venv\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 937, in engine
+    return self.get_engine()
+  File &quot;D:\Works\Programs\Python\darksouls3\venv\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 946, in get_engine
+    app = self.get_app(app)
+  File &quot;D:\Works\Programs\Python\darksouls3\venv\lib\site-packages\flask_sqlalchemy\__init__.py&quot;, line 982, in get_app
+    'No application found. Either work inside a view function or push'
+RuntimeError: No application found. Either work inside a view function or push an application context. See http://flask-sqlalchemy.pocoo.org/contexts/.
+</code></pre>
+<p>显然， 是<code>db.init_app(app)</code>这里出错了， 没有初始化成功，但是把<code>print(db.engine)</code>注释掉，他就不会报错， 导致后来进行数据操作时一系列错误（走了好多弯路。。。）</p>
+<h2 id="解决办法">解决办法</h2>
+<p>在 <code>create_app()</code>中的<code>db.init_app(app)</code>前加上<code>db.app = app</code>就能初始化成功。<br>
+这时<code>print(db.engine)</code>就不会报错， 并打印：<br>
+<code>Engine(sqlite:///D:\Works\Programs\Python\darksouls3\DS3db\Weapon.db)</code></p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%88%91%E7%9A%84%E9%A1%B9%E7%9B%AE%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84">我的项目目录结构</a></li>
+<li><a href="#%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95">解决办法</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://bishaojiuxiaocheng.github.io/post/vultr-vps-an-zhuang-manjaro-linux-de-yi-ci-ji-lu">
+              <h3 class="post-title">
+                Vultr VPS 安装Manjaro Linux 的一次记录
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://bishaojiuxiaocheng.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

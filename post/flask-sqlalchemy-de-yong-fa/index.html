@@ -1,0 +1,294 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Flask-SQLALchemy 的用法 | 小橙</title>
+<link rel="shortcut icon" href="https://bishaojiuxiaocheng.github.io/favicon.ico?v=1581945785656">
+<link href="https://cdn.remixicon.com/releases/v2.1.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://bishaojiuxiaocheng.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="Flask-SQLALchemy 的用法 | 小橙 - Atom Feed" href="https://bishaojiuxiaocheng.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="
+Python 3.7.4
+flask 1.1.1
+
+创建flask应用实例
+我比较喜欢用 工厂函数 的方法来初始化实例
+创建配置类，用来初始化配置
+class Config(object):
+    DEBUG = True
+
+    S..." />
+    <meta name="keywords" content="python,Flask,SQLALchemy" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://bishaojiuxiaocheng.github.io">
+  <img class="avatar" src="https://bishaojiuxiaocheng.github.io/images/avatar.png?v=1581945785656" alt="">
+  </a>
+  <h1 class="site-title">
+    小橙
+  </h1>
+  <p class="site-description">
+    你渴望成为美少女战士吗？
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              Flask-SQLALchemy 的用法
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-02-12
+              </span>
+              <span>
+                3 min read
+              </span>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/FxTTaQDHd" class="post-tag">
+                  # python
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/bIjWrxsvXF" class="post-tag">
+                  # Flask
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/zLvENvHHSO" class="post-tag">
+                  # SQLALchemy
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <blockquote>
+<p>Python 3.7.4<br>
+flask 1.1.1</p>
+</blockquote>
+<h1 id="创建flask应用实例">创建flask应用实例</h1>
+<p>我比较喜欢用 工厂函数 的方法来初始化实例</p>
+<h2 id="创建配置类用来初始化配置">创建配置类，用来初始化配置</h2>
+<pre><code class="language-python">class Config(object):
+    DEBUG = True
+
+    SQLALCHEMY_DATABASE_URI = &quot;sqlite:///databasename&quot;    # 用于连接数据库的地址
+    SQLALCHEMY_TRACK_MODIFICATIONS = False   # 禁用 追踪对象的修改并且发送信号
+</code></pre>
+<p>用于连接数据库的URI有其特定的形式：</p>
+<pre><code>Postgres:     postgresql://scott:tiger@localhost/mydatabase
+MySQL:        mysql://scott:tiger@localhost/mydatabase
+Oracle:         oracle://scott:tiger@127.0.0.1:1521/sidname
+SQLite:         sqlite:////absolute/path/to/foo.db
+</code></pre>
+<p><strong>这里要注意以下SQLite的语法，<code>////</code>表示绝对路径， <code>///</code>表示相对路径</strong><br>
+还有更多的配置参考：<code>http://www.pythondoc.com/flask-sqlalchemy/config.html</code></p>
+<h2 id="创建工厂函数">创建工厂函数</h2>
+<pre><code class="language-python">from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy()
+
+def create_app(config_name):
+    app = Flask(__name__)
+    app.config.from_object(config_name)
+
+    db.app = app
+    db.init_app(app)
+
+    return app
+</code></pre>
+<h2 id="建立数据库模型">建立数据库模型</h2>
+<p>建立数据库模型需要用到<code>db.Model</code></p>
+<pre><code class="language-python">import db #导入创建好的db
+
+class Demo(db.Model):
+    __tabelname__ = 'demo'  # 表名
+
+    id = db.Column(db.Integer, primary_key=True)   # db.Column定义一列， primary_key=True 表示主键
+    user = db.Column('user', db.String(32)) # 默认变量名为列名， 第一个参数可以指定不同的列名
+    def __init__(self, user):
+        self.user = user
+</code></pre>
+<p>Column常用的类型：</p>
+<ul>
+<li>Integer :             整数</li>
+<li>String(size):       长度限制size的字符串</li>
+<li>Text：                unicode文本</li>
+<li>DateTime：       表示为 Python datetime 对象的 时间和日期</li>
+<li>Float：	            存储浮点值</li>
+<li>Boolean：         存储布尔值</li>
+<li>PickleType：	  存储为一个持久化的 Python 对象</li>
+<li>LargeBinary：	  存储一个任意大的二进制数据</li>
+</ul>
+<h2 id="初始化">初始化</h2>
+<pre><code class="language-python">app = create_app(Config)
+</code></pre>
+<h1 id="对数据库的相关操作">对数据库的相关操作</h1>
+<p>初始化app后，在需要用的地方导入 <code>db</code> 就可以进行数据库相关操作了， <strong>如果要写入数据库需要提交<code>db.session.commit()</code></strong></p>
+<h2 id="增">增</h2>
+<p>添加数据有<code>session.add()</code>, <code>session.add_all(*list)</code></p>
+<h3 id="sessionadd-添加单条数据">session.add() 添加单条数据</h3>
+<ol>
+<li>实例化一个数据库模型类：<code>who = Demo('bishaojiuxiaocheng')</code></li>
+<li>把<code>who</code>添加到会话中：<code>db.session.add(who)</code></li>
+<li>提交</li>
+</ol>
+<h3 id="sessionadd_alllist-添加多条数据">session.add_all(*list) 添加多条数据</h3>
+<ol>
+<li>传入一组数据库模型类实例化的列表: <code>user_list = [_ for _ in ['a', 'b', 'c', 'd']]</code></li>
+<li><code>db.session.add(*user_list)</code></li>
+<li>提交</li>
+</ol>
+<h2 id="删">删</h2>
+<p>pass</p>
+<h2 id="查">查</h2>
+<p>查询用<code>query</code>属性， 用<code>filter()</code>或者<code>filter_by()</code>过滤， 用 <code>first()</code>和<code>all()</code>获取查询到的对象，可以用<code>limit(size)</code>来限制返回的个数；主键的查询可用<code>get()</code>方法<br>
+<strong>当查询不到对象时，返回<code>None</code></strong></p>
+<blockquote>
+<p>未完，待后续补充。。。</p>
+</blockquote>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li><a href="#%E5%88%9B%E5%BB%BAflask%E5%BA%94%E7%94%A8%E5%AE%9E%E4%BE%8B">创建flask应用实例</a>
+<ul>
+<li><a href="#%E5%88%9B%E5%BB%BA%E9%85%8D%E7%BD%AE%E7%B1%BB%E7%94%A8%E6%9D%A5%E5%88%9D%E5%A7%8B%E5%8C%96%E9%85%8D%E7%BD%AE">创建配置类，用来初始化配置</a></li>
+<li><a href="#%E5%88%9B%E5%BB%BA%E5%B7%A5%E5%8E%82%E5%87%BD%E6%95%B0">创建工厂函数</a></li>
+<li><a href="#%E5%BB%BA%E7%AB%8B%E6%95%B0%E6%8D%AE%E5%BA%93%E6%A8%A1%E5%9E%8B">建立数据库模型</a></li>
+<li><a href="#%E5%88%9D%E5%A7%8B%E5%8C%96">初始化</a></li>
+</ul>
+</li>
+<li><a href="#%E5%AF%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C">对数据库的相关操作</a>
+<ul>
+<li><a href="#%E5%A2%9E">增</a>
+<ul>
+<li><a href="#sessionadd-%E6%B7%BB%E5%8A%A0%E5%8D%95%E6%9D%A1%E6%95%B0%E6%8D%AE">session.add() 添加单条数据</a></li>
+<li><a href="#sessionadd_alllist-%E6%B7%BB%E5%8A%A0%E5%A4%9A%E6%9D%A1%E6%95%B0%E6%8D%AE">session.add_all(*list) 添加多条数据</a></li>
+</ul>
+</li>
+<li><a href="#%E5%88%A0">删</a></li>
+<li><a href="#%E6%9F%A5">查</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://bishaojiuxiaocheng.github.io/post/python-os-mo-kuai-xiang-guan-yong-fa">
+              <h3 class="post-title">
+                Python OS模块相关用法
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://bishaojiuxiaocheng.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

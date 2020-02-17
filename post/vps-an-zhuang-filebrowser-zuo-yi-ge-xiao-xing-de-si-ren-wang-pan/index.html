@@ -1,0 +1,227 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VPS 安装filebrowser做一个小型的私人网盘 | 小橙</title>
+<link rel="shortcut icon" href="https://bishaojiuxiaocheng.github.io/favicon.ico?v=1581945785656">
+<link href="https://cdn.remixicon.com/releases/v2.1.0/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://bishaojiuxiaocheng.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="VPS 安装filebrowser做一个小型的私人网盘 | 小橙 - Atom Feed" href="https://bishaojiuxiaocheng.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="
+继上次的vps安装manjaro后又再搭建的一个服务，为了防止我的爆满的硬盘出现意外，把一些**放在云端。
+题外话， vultr的日本节点，对移动和电信的线路都不太友好。。。
+
+起初， 打算直接在部署的， 但是由于个人能力问题，最终失败告..." />
+    <meta name="keywords" content="filebrowser,docker,vps,linux" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://bishaojiuxiaocheng.github.io">
+  <img class="avatar" src="https://bishaojiuxiaocheng.github.io/images/avatar.png?v=1581945785656" alt="">
+  </a>
+  <h1 class="site-title">
+    小橙
+  </h1>
+  <p class="site-description">
+    你渴望成为美少女战士吗？
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              VPS 安装filebrowser做一个小型的私人网盘
+            </h2>
+            <div class="post-info">
+              <span>
+                2020-02-17
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/DEtzsudPv" class="post-tag">
+                  # filebrowser
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/FHmI9XSN4d" class="post-tag">
+                  # docker
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/qotpIDZfj" class="post-tag">
+                  # vps
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/CIcj2LSBnf" class="post-tag">
+                  # linux
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content">
+                <blockquote>
+<p>继上次的vps安装manjaro后又再搭建的一个服务，为了防止我的爆满的硬盘出现意外，把一些**放在云端。<br>
+题外话， vultr的日本节点，对移动和电信的线路都不太友好。。。</p>
+</blockquote>
+<p>起初， 打算直接在部署的， 但是由于个人能力问题，最终失败告终。。。<br>
+<u>无法远程访问，应该是caddy反向代理配置错了， 可是我当时怎么没想到frp呢？</u></p>
+<p>没办法，那就用docker吧。</p>
+<ul>
+<li><strong>先安装个docker</strong></li>
+</ul>
+<pre><code class="language-sh">sudo pacman -Sy docker
+# sudo systemctl enable --now docker // 这是新get到的启动服务并设置开机自启的方法
+sudo systemctl start docker # 启动docker
+sudo docker info # 查看启动是否成功
+sudo systemctl enable docker # 开机自启
+</code></pre>
+<ul>
+<li><strong>把filebrowser的镜像pull下来， 启动</strong></li>
+</ul>
+<pre><code class="language-sh">sudo docker pull filebrowser/filebrowser # 拉取filebrowser官方镜像
+sudo mkdir -p /src/filebrowser/site # 创建文件保存目录
+sudo docker run -d \ # 后台运行
+--restart=always \ # 总是自动重启
+--name  filebrowser  filebrowser/filebrowser \ 
+-v /srv/filebrowser/site/root:/srv \ #映射宿主机的 /srv/filebrowser/site/root 到容器的 /srv
+-v /data/filebrowser/filebrowserconfig.json:/etc/config.json \ # 把配置文件映射出来，方便后期修改
+-v /data/filebrowser/database.db:/etc/database.db \ # 把数据库文件映射出来，方便备份迁移
+-p 80:80 \ # 把容器的的80端口映射到宿主机的80端口
+</code></pre>
+<blockquote>
+<p><code>--name</code>：给运行的容器起个名， 不然就是一堆无规律的数字和字母<br>
+<code>-v</code>：表示把宿主机的某文件或目录挂载（或者叫映射？）到容器，‘ ：’前是宿主机， 后是容器<br>
+<code>-p</code>： 端口映射， 把容器的某端口映射到宿主机的某端口， ‘ ：’前是宿主机， 后是容器</p>
+</blockquote>
+<ul>
+<li><strong>防火墙开放端口</strong></li>
+<li><strong>登录filebrowser，默认的用户和密码都是admin，修改默认配置</strong></li>
+</ul>
+<blockquote>
+<blockquote>
+<p>最后说一句：docker真的太方便了。。。。</p>
+</blockquote>
+</blockquote>
+
+              </div>
+              <div class="toc-container">
+                
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://bishaojiuxiaocheng.github.io/post/flask-sqlalchemy-de-yong-fa">
+              <h3 class="post-title">
+                Flask-SQLALchemy 的用法
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a>
+  <a class="rss" href="https://bishaojiuxiaocheng.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>
