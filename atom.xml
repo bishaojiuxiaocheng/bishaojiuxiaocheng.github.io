@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://bishaojiuxiaocheng.github.io</id>
     <title>小橙</title>
-    <updated>2020-02-17T13:23:47.232Z</updated>
+    <updated>2020-04-05T14:49:37.985Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://bishaojiuxiaocheng.github.io"/>
     <link rel="self" href="https://bishaojiuxiaocheng.github.io/atom.xml"/>
@@ -10,6 +10,69 @@
     <logo>https://bishaojiuxiaocheng.github.io/images/avatar.png</logo>
     <icon>https://bishaojiuxiaocheng.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, 小橙</rights>
+    <entry>
+        <title type="html"><![CDATA[Flask 跨域请求问题]]></title>
+        <id>https://bishaojiuxiaocheng.github.io/post/flask-kua-yu-qing-qiu-wen-ti</id>
+        <link href="https://bishaojiuxiaocheng.github.io/post/flask-kua-yu-qing-qiu-wen-ti">
+        </link>
+        <updated>2020-04-05T14:34:38.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>记录一次开发后端api中遇到的跨域请求问题</p>
+</blockquote>
+<p>当使用js发送post请求数据时，发生如下错误：</p>
+<ul>
+<li><strong>请求代码</strong><pre><code class="language-javascript">var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+  	httpRequest.open('POST', 'http://127.0.0.1:5000/api/weapon', true); //第二步：打开连接
+  	httpRequest.setRequestHeader(&quot;Content-type&quot;,&quot;application/json&quot;);//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+  	var obj = {
+      &quot;name&quot;: &quot;匕首&quot;, 
+      &quot;infusion&quot;: &quot;锋利&quot;,
+      &quot;level&quot;: 10,
+      &quot;strength&quot;: 66, 
+      &quot;agility&quot;: 80, 
+      &quot;magic&quot;: 99,
+      &quot;faith&quot;: 99,
+      &quot;luck&quot;: 99, 
+      &quot;status&quot;: true, 
+  };
+  	httpRequest.send(JSON.stringify(obj));//发送请求 将json写入send中
+  	httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
+  	    if (httpRequest.readyState == 4 &amp;&amp; httpRequest.status == 200) {//验证请求是否发送成功
+  	        var json = httpRequest.responseText;//获取到服务端返回的数据
+  	        window.alert(json);
+  	    }
+  };
+</code></pre>
+</li>
+<li><strong>返回的错误：</strong></li>
+</ul>
+<pre><code>Access to XMLHttpRequest at 'http://127.0.0.1:5000/api/weapon' from origin 'chrome-search://local-ntp' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+VM254:15 POST http://127.0.0.1:5000/api/weapon net::ERR_FAILED
+</code></pre>
+<p>经过查询，发现时跨域请求的问题，可以通过<strong>flask-cors</strong>模块解决<br>
+<strong>flask-cors 可以设置成全局，也可以设置成单一独立的</strong></p>
+<ul>
+<li>全局</li>
+</ul>
+<pre><code class="language-python">from flask import Flask
+from flask_cors import *
+app = Flask(__name__)
+CORS(app, supports_credentials=True)
+</code></pre>
+<ul>
+<li>单一独立</li>
+</ul>
+<p>在路由添加<code>@cross_origin()</code>即可</p>
+<pre><code class="language-python">from flask_cors import *
+
+@api.route('/weapon', methods=['POST'])
+@cross_origin()
+def weapon():
+    pass
+
+</code></pre>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[VPS 安装filebrowser做一个小型的私人网盘]]></title>
         <id>https://bishaojiuxiaocheng.github.io/post/vps-an-zhuang-filebrowser-zuo-yi-ge-xiao-xing-de-si-ren-wang-pan</id>

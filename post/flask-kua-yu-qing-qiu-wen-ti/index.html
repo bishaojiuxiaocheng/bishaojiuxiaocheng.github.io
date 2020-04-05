@@ -2,27 +2,23 @@
   <head>
     <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Python OS模块相关用法 | 小橙</title>
+<title>Flask 跨域请求问题 | 小橙</title>
 <link rel="shortcut icon" href="https://bishaojiuxiaocheng.github.io/favicon.ico?v=1586098171925">
 <link href="https://cdn.remixicon.com/releases/v2.1.0/remixicon.css" rel="stylesheet">
 <link rel="stylesheet" href="https://bishaojiuxiaocheng.github.io/styles/main.css">
-<link rel="alternate" type="application/atom+xml" title="Python OS模块相关用法 | 小橙 - Atom Feed" href="https://bishaojiuxiaocheng.github.io/atom.xml">
+<link rel="alternate" type="application/atom+xml" title="Flask 跨域请求问题 | 小橙 - Atom Feed" href="https://bishaojiuxiaocheng.github.io/atom.xml">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
 
 
 
     <meta name="description" content="
-记录所用到的os库的相关方法和用法， 持续更新
-Python 3.7.4
+记录一次开发后端api中遇到的跨域请求问题
 
-os 模块
-os.getcwd() 返回当前工作目录
+当使用js发送post请求数据时，发生如下错误：
 
-该函数不需要传递参数，它返回当前工作的目录。返回字符串类型
-
-import os
-print(os.get..." />
-    <meta name="keywords" content="os模块,python" />
+请求代码var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+  	httpReques..." />
+    <meta name="keywords" content="python,Flask,问题记录" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
     <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
   </head>
@@ -84,22 +80,26 @@ print(os.get..." />
         <div class="post-detail">
           <article class="post">
             <h2 class="post-title">
-              Python OS模块相关用法
+              Flask 跨域请求问题
             </h2>
             <div class="post-info">
               <span>
-                2020-02-12
+                2020-04-05
               </span>
               <span>
-                1 min read
+                2 min read
               </span>
-              
-                <a href="https://bishaojiuxiaocheng.github.io/tag/Ouqc-zbyG" class="post-tag">
-                  # os模块
-                </a>
               
                 <a href="https://bishaojiuxiaocheng.github.io/tag/FxTTaQDHd" class="post-tag">
                   # python
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/bIjWrxsvXF" class="post-tag">
+                  # Flask
+                </a>
+              
+                <a href="https://bishaojiuxiaocheng.github.io/tag/bXulWKpgDD" class="post-tag">
+                  # 问题记录
                 </a>
               
             </div>
@@ -107,47 +107,64 @@ print(os.get..." />
             <div class="post-content-wrapper">
               <div class="post-content">
                 <blockquote>
-<p>记录所用到的os库的相关方法和用法， 持续更新<br>
-Python 3.7.4</p>
+<p>记录一次开发后端api中遇到的跨域请求问题</p>
 </blockquote>
-<h1 id="os-模块">os 模块</h1>
-<h2 id="osgetcwd-返回当前工作目录">os.getcwd() 返回当前工作目录</h2>
-<blockquote>
-<p>该函数不需要传递参数，它返回当前工作的目录。返回字符串类型</p>
-</blockquote>
-<pre><code class="language-python">import os
-print(os.getcwd())
+<p>当使用js发送post请求数据时，发生如下错误：</p>
+<ul>
+<li><strong>请求代码</strong><pre><code class="language-javascript">var httpRequest = new XMLHttpRequest();//第一步：创建需要的对象
+  	httpRequest.open('POST', 'http://127.0.0.1:5000/api/weapon', true); //第二步：打开连接
+  	httpRequest.setRequestHeader(&quot;Content-type&quot;,&quot;application/json&quot;);//设置请求头 注：post方式必须设置请求头（在建立连接后设置请求头）
+  	var obj = {
+      &quot;name&quot;: &quot;匕首&quot;, 
+      &quot;infusion&quot;: &quot;锋利&quot;,
+      &quot;level&quot;: 10,
+      &quot;strength&quot;: 66, 
+      &quot;agility&quot;: 80, 
+      &quot;magic&quot;: 99,
+      &quot;faith&quot;: 99,
+      &quot;luck&quot;: 99, 
+      &quot;status&quot;: true, 
+  };
+  	httpRequest.send(JSON.stringify(obj));//发送请求 将json写入send中
+  	httpRequest.onreadystatechange = function () {//请求后的回调接口，可将请求成功后要执行的程序写在其中
+  	    if (httpRequest.readyState == 4 &amp;&amp; httpRequest.status == 200) {//验证请求是否发送成功
+  	        var json = httpRequest.responseText;//获取到服务端返回的数据
+  	        window.alert(json);
+  	    }
+  };
 </code></pre>
-<p>运行后输出：<br>
-<code>'D:\\Works\\Programs\\Python\\darksouls3'</code><br>
-可以配合 <code>os.path.join()</code>方法把当当前目录下的某个目录或者文件转换为绝对路径</p>
-<h1 id="ospath-模块">os.path 模块</h1>
-<h2 id="ospathjoinpath1-path2-or-path-把目录和文件名合成一个路径">os.path.join(path1, path2 or [*path]) 把目录和文件名合成一个路径</h2>
-<blockquote>
-<p>需要传入两个参数，第一个参数为字符串类型，第二个参数可以时字符串，也可以是列表，返回一个拼接好的字符串。<br>
-和str.join()差不多， 只不过os.path.join内部帮你处理了<code>\</code>，<code>/</code>等问题， <strong>但是他不会帮你帮你判断这个目录或者文件是否存在</strong></p>
-</blockquote>
-<pre><code class="language-python">import os
-print(os.getcwd(), 'test')
+</li>
+<li><strong>返回的错误：</strong></li>
+</ul>
+<pre><code>Access to XMLHttpRequest at 'http://127.0.0.1:5000/api/weapon' from origin 'chrome-search://local-ntp' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+VM254:15 POST http://127.0.0.1:5000/api/weapon net::ERR_FAILED
 </code></pre>
-<p>输出：<br>
-<code>'D:\\Works\\Programs\\Python\\darksouls3\\test'</code></p>
+<p>经过查询，发现时跨域请求的问题，可以通过<strong>flask-cors</strong>模块解决<br>
+<strong>flask-cors 可以设置成全局，也可以设置成单一独立的</strong></p>
+<ul>
+<li>全局</li>
+</ul>
+<pre><code class="language-python">from flask import Flask
+from flask_cors import *
+app = Flask(__name__)
+CORS(app, supports_credentials=True)
+</code></pre>
+<ul>
+<li>单一独立</li>
+</ul>
+<p>在路由添加<code>@cross_origin()</code>即可</p>
+<pre><code class="language-python">from flask_cors import *
+
+@api.route('/weapon', methods=['POST'])
+@cross_origin()
+def weapon():
+    pass
+
+</code></pre>
 
               </div>
               <div class="toc-container">
-                <ul class="markdownIt-TOC">
-<li><a href="#os-%E6%A8%A1%E5%9D%97">os 模块</a>
-<ul>
-<li><a href="#osgetcwd-%E8%BF%94%E5%9B%9E%E5%BD%93%E5%89%8D%E5%B7%A5%E4%BD%9C%E7%9B%AE%E5%BD%95">os.getcwd() 返回当前工作目录</a></li>
-</ul>
-</li>
-<li><a href="#ospath-%E6%A8%A1%E5%9D%97">os.path 模块</a>
-<ul>
-<li><a href="#ospathjoinpath1-path2-or-path-%E6%8A%8A%E7%9B%AE%E5%BD%95%E5%92%8C%E6%96%87%E4%BB%B6%E5%90%8D%E5%90%88%E6%88%90%E4%B8%80%E4%B8%AA%E8%B7%AF%E5%BE%84">os.path.join(path1, path2 or [*path]) 把目录和文件名合成一个路径</a></li>
-</ul>
-</li>
-</ul>
-
+                
               </div>
             </div>
           </article>
@@ -156,9 +173,9 @@ print(os.getcwd(), 'test')
         
           <div class="next-post">
             <div class="next">下一篇</div>
-            <a href="https://bishaojiuxiaocheng.github.io/post/flask-sqlalchemy-zhong-shu-ju-ku-lian-jie-chu-shi-hua-wen-ti">
+            <a href="https://bishaojiuxiaocheng.github.io/post/vps-an-zhuang-filebrowser-zuo-yi-ge-xiao-xing-de-si-ren-wang-pan">
               <h3 class="post-title">
-                Flask-SQLAlchemy 中数据库连接初始化问题
+                VPS 安装filebrowser做一个小型的私人网盘
               </h3>
             </a>
           </div>
